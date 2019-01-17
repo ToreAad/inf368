@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, Flatten
 from keras.utils import to_categorical
-from first_exercise.split_data import X_train, y_train
+from split_data import X_train, y_train
 
 rn.seed(42)
 np.random.seed(42)
