@@ -8,12 +8,11 @@
 # Another good background: https://adeshpande3.github.io/A-Beginner%27s-Guide-To-Understanding-Convolutional-Neural-Networks-Part-2/
 # For tensorboard: http://fizzylogic.nl/2017/05/08/monitor-progress-of-your-keras-based-neural-network-using-tensorboard/
 
-
 import numpy as np
 import random as rn
 import matplotlib.pyplot as plt
 from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten
+from keras.layers import Dense, Conv2D, Flatten, Reshape
 from keras.utils import to_categorical
 from split_data import X_train, y_train, X_validation, y_validation
 from keras.callbacks import TensorBoard
@@ -24,7 +23,6 @@ rn.seed(42)
 np.random.seed(42)
 
 def fit_and_save_model(name, model, epochs = 5, batch_size=64, validation_split = 1.0/12, eval_batch_size=128):
-    # type: tensorboard --logdir=path-to-output to monitor training progress.
     required_folders = './output/{}/logs/'.format(name)
     if not os.path.exists(required_folders):
         os.makedirs(required_folders)
@@ -41,33 +39,43 @@ def fit_and_save_model(name, model, epochs = 5, batch_size=64, validation_split 
     plt.plot(history.history['val_loss'], label='Validation data loss')
     plt.legend()
     plt.title("Model {} loss".format(name))
-    plt.savefig('./output/{}/model_loss.png'.format(name))
+    plt.savefig('./output/{}/model_{}_loss.png'.format(name,name))
+    plt.clf()
 
-    score = model.evaluate(X_validation, y_validation, batch_size = eval_batch_size)
+    plt.plot(history.history['acc'], label='Training data accuracy')
+    plt.plot(history.history['val_acc'], label='Validation data accuracy')
+    plt.legend()
+    plt.title("Model {} accuracy".format(name))
+    plt.savefig('./output/{}/model_{}_accuracy.png'.format(name,name))
+    plt.clf()
+
+    score = model.evaluate(X_validation, to_categorical(y_validation))
     
     model.save('./output/{}/{}.h5'.format(name, name))
     with open("./output/{}/{}.json".format(name, name), 'w+') as f:
         f.write(model.to_json())
     with open("./output/{}/{}.score".format(name, name), 'w+') as f:
-        f.write("Validation loss: {}".format(score['loss']))
-        f.write("Validation accuracy: {}".format(score['acc']))
+        f.write("Validation loss: {}\n".format(score[0]))
+        f.write("Validation accuracy: {}".format(score[1]))
 
+def conv_reshaper(values):
+    return values.reshape(len(values),28,28,1)
 
 def create_convolutional_model():
     model = Sequential()
+    model.add(Reshape((28,28,1), input_shape=(784,)))
     model.add(Conv2D(50, 
                      kernel_size=3, 
-                     activation="relu", 
-                     input_shape=(28, 28, 1)))
-    model.add(Conv2D(100, 
-                     kernel_size=3, 
-                     activation='relu'))
-    model.add(Conv2D(250, 
-                     kernel_size=3, 
-                     activation='relu'))
-    model.add(Conv2D(500, 
-                     kernel_size=3, 
-                     activation='relu'))
+                     activation="relu"))
+    # model.add(Conv2D(100, 
+    #                  kernel_size=3, 
+    #                  activation='relu'))
+    # model.add(Conv2D(250, 
+    #                  kernel_size=3, 
+    #                  activation='relu'))
+    # model.add(Conv2D(500, 
+    #                  kernel_size=3, 
+    #                  activation='relu'))
     model.add(Flatten())
     model.add(Dense(10, activation='softmax'))
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
@@ -76,14 +84,14 @@ def create_convolutional_model():
 
 def create_simple_classifier():
     model = Sequential()
-    model.add(Flatten(input_shape=(28, 28, 1)))
-    model.add(Dense(100, activation='sigmoid'))
+    model.add(Dense(1000, activation='sigmoid', input_shape=(784,)))
     model.add(Dense(10, activation='softmax'))
     model.compile(optimizer="SGD", loss="categorical_crossentropy", metrics=["accuracy"])
     return model
 
 if __name__ == "__main__":
+    # type: tensorboard --logdir=path-to-output to monitor training progress.
     fit_and_save_model("mnist_simple", create_simple_classifier())
-    # fit_and_save_model("mnist_convolutional", create_convolutional_model(), 
-    #                    batch_size=int(len(X_train)*0.001),
-    #                    epochs=20)
+    fit_and_save_model("mnist_convolutional", create_convolutional_model(), 
+                       batch_size=int(len(X_train)*0.001),
+                       epochs=3)
