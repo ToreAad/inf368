@@ -1,5 +1,11 @@
 keras
+
 pandas
+
 matplotlib
+
 numpy
+
 scikit-learn
+
+pydot
