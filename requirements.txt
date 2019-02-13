@@ -9,3 +9,7 @@ numpy
 scikit-learn
 
 pydot
+graphviz
+runipy
+augmentor
+skimage
