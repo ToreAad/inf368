@@ -112,3 +112,6 @@ venv.bak/
 
 # my output
 /output
+
+# dotenv
+.env

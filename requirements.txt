@@ -1,13 +1,12 @@
 keras
 
+python-dotenv
 pandas
-
 matplotlib
 
 numpy
 
 scikit-learn
-
 pydot
 graphviz
 runipy
